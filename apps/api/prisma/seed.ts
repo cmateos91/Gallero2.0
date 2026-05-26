@@ -4,7 +4,11 @@ import { COMBAT_ITEM_CATALOG } from "@gallos/game-engine";
 const prisma = new PrismaClient();
 
 // ─── Constante pública — también usada en Fase 3 ─────────────────────────────
-export const CPU_BOT_ID = "00000000-0000-0000-0000-000000000001";
+export const CPU_BOT_ID = "00000000-0000-4000-8000-000000000001";
+
+// IDs viejos con version=0 que se crearon antes de migrar a v4 válidos
+const LEGACY_CPU_BOT_ID    = "00000000-0000-0000-0000-000000000001";
+const LEGACY_ROOSTER_PREFIX = "00000000-0000-0000-0001-";
 
 // ─── CombatItem templates ─────────────────────────────────────────────────────
 
@@ -71,19 +75,32 @@ async function seedCosmeticItems() {
 // ─── CPU Bot user + roosters ──────────────────────────────────────────────────
 
 const CPU_ROOSTERS = [
-  { id: "00000000-0000-0000-0001-000000000001", name: "Rojo Fuego I",    nature: "AGRESIVO" as const,    attack: 28, defense: 18, speed: 20, resistance: 18 },
-  { id: "00000000-0000-0000-0001-000000000002", name: "Rojo Fuego II",   nature: "AGRESIVO" as const,    attack: 28, defense: 18, speed: 20, resistance: 18 },
-  { id: "00000000-0000-0000-0001-000000000003", name: "Escudo Gris I",   nature: "DEFENSIVO" as const,   attack: 16, defense: 30, speed: 18, resistance: 20 },
-  { id: "00000000-0000-0000-0001-000000000004", name: "Escudo Gris II",  nature: "DEFENSIVO" as const,   attack: 16, defense: 30, speed: 18, resistance: 20 },
-  { id: "00000000-0000-0000-0001-000000000005", name: "Viento Negro I",  nature: "VELOZ" as const,       attack: 20, defense: 16, speed: 30, resistance: 18 },
-  { id: "00000000-0000-0000-0001-000000000006", name: "Viento Negro II", nature: "VELOZ" as const,       attack: 20, defense: 16, speed: 30, resistance: 18 },
-  { id: "00000000-0000-0000-0001-000000000007", name: "Titán I",         nature: "ROBUSTO" as const,     attack: 18, defense: 22, speed: 16, resistance: 28 },
-  { id: "00000000-0000-0000-0001-000000000008", name: "Titán II",        nature: "ROBUSTO" as const,     attack: 18, defense: 22, speed: 16, resistance: 28 },
-  { id: "00000000-0000-0000-0001-000000000009", name: "Equilibrio I",    nature: "EQUILIBRADO" as const, attack: 22, defense: 22, speed: 22, resistance: 22 },
-  { id: "00000000-0000-0000-0001-000000000010", name: "Equilibrio II",   nature: "EQUILIBRADO" as const, attack: 22, defense: 22, speed: 22, resistance: 22 },
+  { id: "00000000-0000-4001-8000-000000000001", name: "Rojo Fuego I",    nature: "AGRESIVO" as const,    attack: 28, defense: 18, speed: 20, resistance: 18 },
+  { id: "00000000-0000-4001-8000-000000000002", name: "Rojo Fuego II",   nature: "AGRESIVO" as const,    attack: 28, defense: 18, speed: 20, resistance: 18 },
+  { id: "00000000-0000-4001-8000-000000000003", name: "Escudo Gris I",   nature: "DEFENSIVO" as const,   attack: 16, defense: 30, speed: 18, resistance: 20 },
+  { id: "00000000-0000-4001-8000-000000000004", name: "Escudo Gris II",  nature: "DEFENSIVO" as const,   attack: 16, defense: 30, speed: 18, resistance: 20 },
+  { id: "00000000-0000-4001-8000-000000000005", name: "Viento Negro I",  nature: "VELOZ" as const,       attack: 20, defense: 16, speed: 30, resistance: 18 },
+  { id: "00000000-0000-4001-8000-000000000006", name: "Viento Negro II", nature: "VELOZ" as const,       attack: 20, defense: 16, speed: 30, resistance: 18 },
+  { id: "00000000-0000-4001-8000-000000000007", name: "Titán I",         nature: "ROBUSTO" as const,     attack: 18, defense: 22, speed: 16, resistance: 28 },
+  { id: "00000000-0000-4001-8000-000000000008", name: "Titán II",        nature: "ROBUSTO" as const,     attack: 18, defense: 22, speed: 16, resistance: 28 },
+  { id: "00000000-0000-4001-8000-000000000009", name: "Equilibrio I",    nature: "EQUILIBRADO" as const, attack: 22, defense: 22, speed: 22, resistance: 22 },
+  { id: "00000000-0000-4001-8000-00000000000a", name: "Equilibrio II",   nature: "EQUILIBRADO" as const, attack: 22, defense: 22, speed: 22, resistance: 22 },
 ] as const;
 
 async function seedCpuBot() {
+  // Limpieza de IDs legacy (version=0 no válidos para RFC 4122)
+  const legacyRoosters = await prisma.rooster.findMany({
+    where: { id: { startsWith: LEGACY_ROOSTER_PREFIX } },
+    select: { id: true },
+  });
+  if (legacyRoosters.length > 0) {
+    await prisma.rooster.deleteMany({ where: { id: { startsWith: LEGACY_ROOSTER_PREFIX } } });
+  }
+  const legacyBot = await prisma.user.findUnique({ where: { id: LEGACY_CPU_BOT_ID } });
+  if (legacyBot) {
+    await prisma.user.delete({ where: { id: LEGACY_CPU_BOT_ID } });
+  }
+
   await prisma.user.upsert({
     where: { id: CPU_BOT_ID },
     update: {},

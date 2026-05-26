@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { COMBAT_ITEM_CATALOG } from "@gallos/game-engine";
 
-const CPU_BOT_ID = "00000000-0000-0000-0000-000000000001";
+const CPU_BOT_ID = "00000000-0000-4000-8000-000000000001";
 
 const prisma = new PrismaClient();
 
