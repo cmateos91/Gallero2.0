@@ -1,0 +1,25 @@
+{
+  "name": "gallero",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @gallos/game-engine build && concurrently -n engine,api,web -c blue,green,yellow \"pnpm --filter @gallos/game-engine dev\" \"pnpm --filter @gallos/api dev\" \"pnpm --filter @gallos/web dev\"",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:economy": "pnpm --filter @gallos/game-engine test:economy",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^3.0.0"
+  }
+}

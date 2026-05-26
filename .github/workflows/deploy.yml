@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @gallos/game-engine build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  # Placeholder: deploy steps will be added when infrastructure is ready
+  deploy-api:
+    name: Deploy API
+    needs: build
+    runs-on: ubuntu-latest
+    if: false  # Disabled until deployment target is configured
+    steps:
+      - run: echo "Deploy API — not configured yet"
+
+  deploy-web:
+    name: Deploy Web
+    needs: build
+    runs-on: ubuntu-latest
+    if: false  # Disabled until deployment target is configured
+    steps:
+      - run: echo "Deploy Web — not configured yet"

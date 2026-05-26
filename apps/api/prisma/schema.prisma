@@ -1,0 +1,312 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum RoosterStage {
+  HUEVO
+  POLLO
+  ADULTO
+}
+
+enum RoosterNature {
+  AGRESIVO
+  DEFENSIVO
+  VELOZ
+  ROBUSTO
+  EQUILIBRADO
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum FightResult {
+  CHALLENGER_WIN
+  DEFENDER_WIN
+  DRAW
+}
+
+enum RewardType {
+  FIGHT
+  WEEKLY_RANKING
+  STREAK
+  TOWER
+}
+
+enum InventoryItemType {
+  FOOD
+  WATER
+  ACCESSORY
+}
+
+enum CosmeticSlot {
+  CRESTA
+  ALAS
+  BARBA
+  CUERPO
+  COLA
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  username            String   @unique
+  passwordHash        String?
+  mmr                 Int      @default(1000)
+  coins               Int      @default(0)
+  towerHighFloor      Int      @default(0)
+  streakDays          Int      @default(0)
+  lastStreakDate      String?
+  lastInventoryRefillAt DateTime?
+  fenceScreen         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  roosters              Rooster[]
+  feathers              FeatherCollectible[]
+  sessions              Session[]
+  rewardTransactions    RewardTransaction[]
+  combatItems           UserCombatItem[]
+  placedAccessories     PlacedAccessory[]
+  inventory             UserInventory[]
+  cosmetics             UserCosmetic[]
+  equippedCosmetics     EquippedCosmetic[]
+  dailyMissions         DailyMissionProgress[]
+  friendshipsInitiated  Friendship[]       @relation("UserAFriendship")
+  friendshipsReceived   Friendship[]       @relation("UserBFriendship")
+  friendRequestsSent    FriendRequest[]    @relation("SenderRequests")
+  friendRequestsReceived FriendRequest[]   @relation("ReceiverRequests")
+  fightsAsChallenger    Fight[]            @relation("ChallengerFights")
+  fightsAsDefender      Fight[]            @relation("DefenderFights")
+}
+
+model Rooster {
+  id            String       @id @default(uuid())
+  userId        String
+  name          String
+  stage         RoosterStage
+  nature        RoosterNature?
+  quality       String       @default("Común")
+  attack        Int
+  defense       Int
+  speed         Int
+  resistance    Int
+  careCurrent   Int          @default(50)
+  bondPoints    Int          @default(0)
+  hunger        Int          @default(100)
+  thirst        Int          @default(100)
+  growthProgress Int         @default(0)
+  eggStatRanges Json?
+  hatchReadyAt  DateTime?
+  customColors  Json?
+  paintLayers   Json?
+  positionX     Float?
+  positionY     Float?
+  homeScreen    String?
+  isAtHome      Boolean      @default(false)
+  onFence       Boolean      @default(false)
+  diedAt        DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id])
+  fightsAsChallenger Fight[]          @relation("ChallengerRooster")
+  fightsAsDefender   Fight[]          @relation("DefenderRooster")
+  equippedCosmetics  EquippedCosmetic[]
+}
+
+model Fight {
+  id                  String     @id @default(uuid())
+  challengerUserId    String
+  defenderUserId      String
+  challengerRoosterId String
+  defenderRoosterId   String
+  snapshotChallenger  Json
+  snapshotDefender    Json
+  seed                String
+  turnLog             Json?
+  result              FightResult?
+  createdAt           DateTime   @default(now())
+
+  challengerUser    User    @relation("ChallengerFights", fields: [challengerUserId], references: [id])
+  defenderUser      User    @relation("DefenderFights", fields: [defenderUserId], references: [id])
+  challengerRooster Rooster @relation("ChallengerRooster", fields: [challengerRoosterId], references: [id])
+  defenderRooster   Rooster @relation("DefenderRooster", fields: [defenderRoosterId], references: [id])
+  rewardTransaction  RewardTransaction?
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserAFriendship", fields: [userId], references: [id])
+  friend User @relation("UserBFriendship", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+model FriendRequest {
+  id         String             @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     FriendRequestStatus
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  sender   User @relation("SenderRequests", fields: [senderId], references: [id])
+  receiver User @relation("ReceiverRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+model FeatherCollectible {
+  id           String   @id @default(uuid())
+  userId       String
+  xPct         Float
+  yPct         Float
+  scale        Float    @default(1.0)
+  rotationDeg  Float    @default(0)
+  screen       String
+  collectedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RewardTransaction {
+  id        String     @id @default(uuid())
+  userId    String
+  fightId   String?  @unique
+  type      RewardType
+  amount    Int
+  createdAt DateTime   @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  fight Fight? @relation(fields: [fightId], references: [id])
+}
+
+model CombatItem {
+  id          String @id @default(uuid())
+  type        String @unique
+  name        String
+  description String
+  price       Int
+  turns       Int
+  effectValue Int
+
+  userItems UserCombatItem[]
+}
+
+model UserCombatItem {
+  id       String @id @default(uuid())
+  userId   String
+  itemId   String
+  quantity Int    @default(0)
+
+  user User       @relation(fields: [userId], references: [id])
+  item CombatItem @relation(fields: [itemId], references: [id])
+
+  @@unique([userId, itemId])
+}
+
+model UserInventory {
+  id       String            @id @default(uuid())
+  userId   String
+  itemType InventoryItemType
+  itemKey  String
+  quantity Int               @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, itemType, itemKey])
+}
+
+model PlacedAccessory {
+  id         String @id @default(uuid())
+  userId     String
+  type       String
+  screen     String
+  positionX  Float  @default(0)
+  positionY  Float  @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model DailyMissionProgress {
+  id         String   @id @default(uuid())
+  userId     String
+  date       String
+  fightsWon  Int      @default(0)
+  feedings   Int      @default(0)
+  trainings  Int      @default(0)
+  claimed    String[] @default([])
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model CosmeticItem {
+  id          String       @id @default(uuid())
+  slot        CosmeticSlot
+  name        String
+  description String
+  price       Int
+  rarity      String       @default("Común")
+  createdAt   DateTime     @default(now())
+
+  owners    UserCosmetic[]
+  equipped  EquippedCosmetic[]
+}
+
+model UserCosmetic {
+  id             String   @id @default(uuid())
+  userId         String
+  cosmeticItemId String
+  acquiredAt     DateTime @default(now())
+
+  user     User         @relation(fields: [userId], references: [id])
+  cosmetic CosmeticItem @relation(fields: [cosmeticItemId], references: [id])
+
+  @@unique([userId, cosmeticItemId])
+}
+
+model EquippedCosmetic {
+  id             String       @id @default(uuid())
+  userId         String
+  roosterId      String
+  cosmeticItemId String
+  slot           CosmeticSlot
+
+  user     User         @relation(fields: [userId], references: [id])
+  rooster  Rooster      @relation(fields: [roosterId], references: [id])
+  cosmetic CosmeticItem @relation(fields: [cosmeticItemId], references: [id])
+
+  @@unique([roosterId, slot])
+}
