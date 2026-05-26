@@ -136,14 +136,17 @@ export function toAuthUserDto(user: {
 
 const FEATHER_COOLDOWN_MS = 90_000;
 const FEATHER_MAX_PER_DAY = 40;
+const FEATHER_COOLDOWN_KEY = (userId: string) => `feather:cooldown:${userId}`;
 
 export async function rollFeather(
   prisma: PrismaClient,
+  redis: Redis,
   userId: string,
   screen: string,
   nowMs: number,
 ): Promise<{ spawned: boolean; xPct?: number; yPct?: number; id?: string }> {
-  const today = new Date(nowMs).toISOString().slice(0, 10);
+  const cooldownExists = await redis.exists(FEATHER_COOLDOWN_KEY(userId));
+  if (cooldownExists) return { spawned: false };
 
   const todayCount = await prisma.featherCollectible.count({
     where: { userId, screen, collectedAt: { not: null } },
@@ -165,8 +168,7 @@ export async function rollFeather(
     data: { userId, xPct, yPct, scale, rotationDeg, screen },
   });
 
-  void today;
-  void FEATHER_COOLDOWN_MS;
+  await redis.setex(FEATHER_COOLDOWN_KEY(userId), Math.ceil(FEATHER_COOLDOWN_MS / 1000), "1");
   return { spawned: true, xPct, yPct, id: feather.id };
 }
 

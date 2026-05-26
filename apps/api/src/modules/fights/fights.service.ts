@@ -103,7 +103,7 @@ export async function submitTurn(
   combatId: string,
   userId: string,
   move: CombatMove,
-): Promise<{ turnResult?: TurnResult; state: CombatState; over: boolean; waiting?: boolean }> {
+): Promise<{ turnResult?: TurnResult; state: CombatState; over: boolean; waiting?: boolean; mmrDeltaA?: number; mmrDeltaB?: number }> {
   const raw = await redis.get(REDIS_KEYS.combat(combatId));
   if (!raw) throw Object.assign(new Error("Combate no encontrado o expirado"), { status: 404 });
 
@@ -131,8 +131,8 @@ export async function submitTurn(
   cs.moveB  = undefined;
 
   if (newState.isOver) {
-    await endCombat(prisma, redis, combatId, cs);
-    return { turnResult, state: newState, over: true };
+    const { deltaA, deltaB } = await endCombat(prisma, redis, combatId, cs);
+    return { turnResult, state: newState, over: true, mmrDeltaA: deltaA, mmrDeltaB: deltaB };
   }
 
   await redis.setex(REDIS_KEYS.combat(combatId), TTL.COMBAT_S, JSON.stringify(cs));
@@ -144,7 +144,7 @@ async function endCombat(
   redis: Redis,
   combatId: string,
   cs: CombatRedisState,
-): Promise<void> {
+): Promise<{ deltaA: number; deltaB: number }> {
   // winner: 0 = fighterA (challenger), 1 = fighterB (defender), null = draw
   const result =
     cs.state.winner === 0 ? "CHALLENGER_WIN" :
@@ -198,6 +198,8 @@ async function endCombat(
   ]);
 
   await redis.del(REDIS_KEYS.combat(combatId));
+
+  return { deltaA, deltaB };
 }
 
 export async function getFight(prisma: PrismaClient, fightId: string) {

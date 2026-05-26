@@ -56,16 +56,16 @@ describe("STREAK_BONUSES", () => {
 });
 
 describe("getStreakBonus", () => {
-  it("0 días → 0", () => expect(getStreakBonus(0)).toBe(0));
-  it("2 días → 0", () => expect(getStreakBonus(2)).toBe(0));
-  it("3 días → 20", () => expect(getStreakBonus(3)).toBe(20));
-  it("6 días → 20", () => expect(getStreakBonus(6)).toBe(20));
-  it("7 días → 75", () => expect(getStreakBonus(7)).toBe(75));
-  it("13 días → 75", () => expect(getStreakBonus(13)).toBe(75));
-  it("14 días → 150", () => expect(getStreakBonus(14)).toBe(150));
-  it("29 días → 150", () => expect(getStreakBonus(29)).toBe(150));
-  it("30 días → 300", () => expect(getStreakBonus(30)).toBe(300));
-  it("100 días → 300", () => expect(getStreakBonus(100)).toBe(300));
+  it("0 días → 0", () => { expect(getStreakBonus(0)).toBe(0); });
+  it("2 días → 0", () => { expect(getStreakBonus(2)).toBe(0); });
+  it("3 días → 20", () => { expect(getStreakBonus(3)).toBe(20); });
+  it("6 días → 20", () => { expect(getStreakBonus(6)).toBe(20); });
+  it("7 días → 75", () => { expect(getStreakBonus(7)).toBe(75); });
+  it("13 días → 75", () => { expect(getStreakBonus(13)).toBe(75); });
+  it("14 días → 150", () => { expect(getStreakBonus(14)).toBe(150); });
+  it("29 días → 150", () => { expect(getStreakBonus(29)).toBe(150); });
+  it("30 días → 300", () => { expect(getStreakBonus(30)).toBe(300); });
+  it("100 días → 300", () => { expect(getStreakBonus(100)).toBe(300); });
 });
 
 describe("todayUtc / yesterdayUtc", () => {

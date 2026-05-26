@@ -183,7 +183,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.post("/auth/feathers/roll", { preHandler: requireAuth }, async (req, reply) => {
     const body = (req.body ?? {}) as { screen?: string };
     const screen = body.screen ?? "home";
-    const result = await rollFeather(prisma, req.userId, screen, Date.now());
+    const redis = getRedis();
+    const result = await rollFeather(prisma, redis, req.userId, screen, Date.now());
     return reply.send(result);
   });
 

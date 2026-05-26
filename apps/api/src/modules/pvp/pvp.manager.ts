@@ -5,7 +5,7 @@ import type { Redis } from "ioredis";
 import type { PrismaClient } from "@prisma/client";
 import { verifyAccessToken } from "../auth/auth.service.js";
 import { startSoloCombat, submitTurn } from "../fights/fights.service.js";
-import { saveChallenge, getChallenge, deleteChallenge, saveRoom, getRoom, deleteRoom } from "./pvp.redis.js";
+import { saveChallenge, getChallenge, deleteChallenge, saveRoom, getRoom, deleteRoom, registerConnection, refreshConnection, unregisterConnection } from "./pvp.redis.js";
 import type { PvpMessage } from "./pvp.schemas.js";
 
 type Connection = {
@@ -54,6 +54,7 @@ export class PvpManager {
           clearTimeout(authTimeout);
           conn = { ws, userId: user.id, username: user.username, lastPingAt: Date.now() };
           this.connections.set(user.id, conn);
+          void registerConnection(this.redis, user.id);
           this.send(conn, { type: "connected", payload: { userId: user.id, username: user.username } });
         } catch {
           ws.close(4003, "Invalid token");
@@ -62,12 +63,14 @@ export class PvpManager {
       }
 
       conn.lastPingAt = Date.now();
+      void refreshConnection(this.redis, conn.userId);
       await this.handleMessage(conn, msg);
     });
 
     ws.on("close", () => {
       if (conn) {
         this.connections.delete(conn.userId);
+        void unregisterConnection(this.redis, conn.userId);
         if (conn.roomId) void this.cancelRoom(conn.roomId, conn.userId);
       }
       clearTimeout(authTimeout);
@@ -216,8 +219,14 @@ export class PvpManager {
           this.prisma.user.findUniqueOrThrow({ where: { id: room.challengerUserId }, select: { mmr: true, coins: true } }),
           this.prisma.user.findUniqueOrThrow({ where: { id: room.defenderUserId }, select: { mmr: true, coins: true } }),
         ]);
-        if (challConn) this.send(challConn, { type: "fight:over", payload: { winner: winnerUserId, mmrDelta: 0, coins: userC.coins } });
-        if (defConn)   this.send(defConn,   { type: "fight:over", payload: { winner: winnerUserId, mmrDelta: 0, coins: userD.coins } });
+        if (challConn) this.send(challConn, {
+          type: "fight:over",
+          payload: { winner: winnerUserId, mmrDelta: result.mmrDeltaA ?? 0, coins: userC.coins },
+        });
+        if (defConn) this.send(defConn, {
+          type: "fight:over",
+          payload: { winner: winnerUserId, mmrDelta: result.mmrDeltaB ?? 0, coins: userD.coins },
+        });
         await deleteRoom(this.redis, roomId);
       }
     } catch (err) {

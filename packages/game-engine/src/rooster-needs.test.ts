@@ -39,13 +39,13 @@ function makeRooster(overrides: Partial<Rooster> = {}): Rooster {
 const NOW = 3_600_000; // 1 hora después del epoch
 
 describe("constantes", () => {
-  it("HUNGER_DECAY_PER_HOUR = 4", () => expect(HUNGER_DECAY_PER_HOUR).toBe(4));
-  it("THIRST_DECAY_PER_HOUR = 8", () => expect(THIRST_DECAY_PER_HOUR).toBe(8));
-  it("HUNGER_PER_FEED = 20", () => expect(HUNGER_PER_FEED).toBe(20));
-  it("THIRST_PER_DRINK = 25", () => expect(THIRST_PER_DRINK).toBe(25));
-  it("CARE_DECAY_PER_HOUR = 0.5", () => expect(CARE_DECAY_PER_HOUR).toBe(0.5));
-  it("DEAD_RESCUE_WINDOW_MS = 7 días", () => expect(DEAD_RESCUE_WINDOW_MS).toBe(7 * 24 * 60 * 60 * 1000));
-  it("GROWTH_MIN_RESOURCE = 50", () => expect(GROWTH_MIN_RESOURCE).toBe(50));
+  it("HUNGER_DECAY_PER_HOUR = 4", () => { expect(HUNGER_DECAY_PER_HOUR).toBe(4); });
+  it("THIRST_DECAY_PER_HOUR = 8", () => { expect(THIRST_DECAY_PER_HOUR).toBe(8); });
+  it("HUNGER_PER_FEED = 20", () => { expect(HUNGER_PER_FEED).toBe(20); });
+  it("THIRST_PER_DRINK = 25", () => { expect(THIRST_PER_DRINK).toBe(25); });
+  it("CARE_DECAY_PER_HOUR = 0.5", () => { expect(CARE_DECAY_PER_HOUR).toBe(0.5); });
+  it("DEAD_RESCUE_WINDOW_MS = 7 días", () => { expect(DEAD_RESCUE_WINDOW_MS).toBe(7 * 24 * 60 * 60 * 1000); });
+  it("GROWTH_MIN_RESOURCE = 50", () => { expect(GROWTH_MIN_RESOURCE).toBe(50); });
 });
 
 describe("computeGrowthPerHour", () => {

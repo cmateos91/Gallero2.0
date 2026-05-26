@@ -90,11 +90,25 @@ function getEffectiveStat(
   stat: "attack" | "defense" | "speed",
   fighter: Fighter,
   fighterState: CombatFighterState,
+  opponent?: Fighter,
 ): number {
   const multiplier = fighter.careMultiplier * fighter.bondMultiplier;
+
+  // Swap buffs: replace stat with opponent's stat
+  const swapBuff = fighterState.buffs.find(
+    (b) => b.isSwap && b.stat === stat && b.targetStat,
+  );
+  if (swapBuff && opponent && swapBuff.targetStat) {
+    const targetStat = swapBuff.targetStat;
+    const oppBase =
+      targetStat === "attack" ? opponent.attack :
+      targetStat === "defense" ? opponent.defense : opponent.speed;
+    return Math.max(1, oppBase * multiplier);
+  }
+
   let value = base * multiplier;
   for (const buff of fighterState.buffs) {
-    if (buff.stat === stat) value += buff.value;
+    if (buff.stat === stat && !buff.isSwap) value += buff.value;
   }
   return Math.max(1, value);
 }
@@ -109,8 +123,8 @@ function computeDamage(
   rng: PRNG,
   preDeductionEnergy: number,
 ): number {
-  const effectiveAtk = getEffectiveStat(attacker.attack, "attack", attacker, attackerState);
-  const baseDefense = getEffectiveStat(defender.defense, "defense", defender, defenderState);
+  const effectiveAtk = getEffectiveStat(attacker.attack, "attack", attacker, attackerState, defender);
+  const baseDefense = getEffectiveStat(defender.defense, "defense", defender, defenderState, attacker);
   const effectiveDef = isDefending ? baseDefense * 2 : baseDefense;
 
   const isWeak = preDeductionEnergy < ENERGY_ATTACK_COST;
@@ -140,8 +154,8 @@ export function resolveTurn(
 ): { state: CombatState; turnResult: TurnResult } {
   if (state.isOver) return { state, turnResult: { damageA: 0, damageB: 0, log: [], isOver: true, winner: state.winner } };
 
-  let fsA = { ...state.fighterA, buffs: [...state.fighterA.buffs] };
-  let fsB = { ...state.fighterB, buffs: [...state.fighterB.buffs] };
+  const fsA = { ...state.fighterA, buffs: [...state.fighterA.buffs] };
+  const fsB = { ...state.fighterB, buffs: [...state.fighterB.buffs] };
   const log: string[] = [];
   let damageA = 0;
   let damageB = 0;
@@ -162,6 +176,7 @@ export function resolveTurn(
 
   const isADefending = moveA === "defender";
   const isBDefending = moveB === "defender";
+  let newMomentum: { fighter: 0 | 1 | null; mult: number } = { fighter: null, mult: 1 };
 
   // Ataque de A sobre B
   if (moveA === "atacar") {
@@ -177,6 +192,7 @@ export function resolveTurn(
       if (rng() < dodgeProb) {
         log.push("B esquiva");
         fsB.consecutiveDefenses = 0;
+        newMomentum = { fighter: 1, mult: 1.5 };
       } else {
         const dmg = computeDamage(fighterA, fsA, fighterB, fsB, false, atkMulti * 1.3, rng, energyABefore);
         fsB.hp = Math.max(0, fsB.hp - dmg);
@@ -216,6 +232,7 @@ export function resolveTurn(
       if (rng() < dodgeProb) {
         log.push("A esquiva");
         fsA.consecutiveDefenses = 0;
+        newMomentum = { fighter: 0, mult: 1.5 };
       } else {
         const dmg = computeDamage(fighterB, fsB, fighterA, fsA, false, atkMulti * 1.3, rng, energyBBefore);
         fsA.hp = Math.max(0, fsA.hp - dmg);
@@ -244,11 +261,11 @@ export function resolveTurn(
   // Defender recupera energía y acumula defensas consecutivas
   if (isADefending) {
     fsA.energy = Math.min(ENERGY_MAX, fsA.energy + ENERGY_DEFEND_RECOVER);
-    fsA.consecutiveDefenses = (state.fighterA.consecutiveDefenses ?? 0) + 1;
+    fsA.consecutiveDefenses = state.fighterA.consecutiveDefenses + 1;
   }
   if (isBDefending) {
     fsB.energy = Math.min(ENERGY_MAX, fsB.energy + ENERGY_DEFEND_RECOVER);
-    fsB.consecutiveDefenses = (state.fighterB.consecutiveDefenses ?? 0) + 1;
+    fsB.consecutiveDefenses = state.fighterB.consecutiveDefenses + 1;
   }
 
   // Esquivar solo gasta energía (ya manejado arriba si el rival ataca)
@@ -262,9 +279,6 @@ export function resolveTurn(
   // Decrementar buffs
   fsA.buffs = decrementBuffs(fsA.buffs);
   fsB.buffs = decrementBuffs(fsB.buffs);
-
-  // Limpiar momentum usado
-  const newMomentum: { fighter: 0 | 1 | null; mult: number } = { fighter: null, mult: 1 };
 
   // Comprobar fin de combate
   let isOver = false;
@@ -331,7 +345,7 @@ export function applyCombatItem(
     const stat = itemType === "frenzy" ? "attack" : itemType === "fortress" ? "defense" : "speed";
     fs.buffs.push({ stat, value: descriptor.effectValue, turnsRemaining: descriptor.turns });
     result = `+${String(descriptor.effectValue)} ${stat} por ${String(descriptor.turns)} turnos`;
-  } else if (itemType === "swap_attack_speed" || itemType === "swap_defense_attack") {
+  } else {
     fs.buffs.push({
       stat: itemType === "swap_attack_speed" ? "attack" : "defense",
       value: 0,

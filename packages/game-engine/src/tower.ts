@@ -38,7 +38,7 @@ export function generateTowerNpc(floor: number, runSeed: number): TowerNpc {
   let name: string;
   let nature: RoosterNature;
 
-  if (isBoss && floor <= 10 && CAMPAIGN_BOSSES[floor]) {
+  if (isBoss && floor <= 10) {
     name = CAMPAIGN_BOSSES[floor].name;
     nature = CAMPAIGN_BOSSES[floor].nature;
   } else if (isBoss) {

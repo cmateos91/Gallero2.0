@@ -11,7 +11,6 @@ import {
   aiPickMove,
   applyCombatItem,
   type Fighter,
-  type CombatState,
 } from "./combat.js";
 
 function makeFighter(overrides: Partial<Fighter> = {}): Fighter {
@@ -27,11 +26,11 @@ function makeFighter(overrides: Partial<Fighter> = {}): Fighter {
 }
 
 describe("constantes", () => {
-  it("ENERGY_MAX = 100", () => expect(ENERGY_MAX).toBe(100));
-  it("ENERGY_START = 50", () => expect(ENERGY_START).toBe(50));
-  it("ENERGY_ATTACK_COST = 30", () => expect(ENERGY_ATTACK_COST).toBe(30));
-  it("ENERGY_DEFEND_RECOVER = 25", () => expect(ENERGY_DEFEND_RECOVER).toBe(25));
-  it("ENERGY_DODGE_COST = 10", () => expect(ENERGY_DODGE_COST).toBe(10));
+  it("ENERGY_MAX = 100", () => { expect(ENERGY_MAX).toBe(100); });
+  it("ENERGY_START = 50", () => { expect(ENERGY_START).toBe(50); });
+  it("ENERGY_ATTACK_COST = 30", () => { expect(ENERGY_ATTACK_COST).toBe(30); });
+  it("ENERGY_DEFEND_RECOVER = 25", () => { expect(ENERGY_DEFEND_RECOVER).toBe(25); });
+  it("ENERGY_DODGE_COST = 10", () => { expect(ENERGY_DODGE_COST).toBe(10); });
 });
 
 describe("createSeededRng", () => {

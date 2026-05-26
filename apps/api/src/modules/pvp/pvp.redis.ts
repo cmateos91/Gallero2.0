@@ -31,3 +31,24 @@ export async function getRoom(redis: Redis, roomId: string): Promise<PvpRoom | n
 export async function deleteRoom(redis: Redis, roomId: string): Promise<void> {
   await redis.del(REDIS_KEYS.pvpRoom(roomId));
 }
+
+// ─── Connection tracking ─────────────────────────────────────────────────────
+
+const WS_USER_TTL_S = 120; // 2 min — heartbeat failure auto-expira
+
+export async function registerConnection(redis: Redis, userId: string): Promise<void> {
+  await redis.setex(REDIS_KEYS.wsUser(userId), WS_USER_TTL_S, String(Date.now()));
+}
+
+export async function refreshConnection(redis: Redis, userId: string): Promise<void> {
+  await redis.setex(REDIS_KEYS.wsUser(userId), WS_USER_TTL_S, String(Date.now()));
+}
+
+export async function unregisterConnection(redis: Redis, userId: string): Promise<void> {
+  await redis.del(REDIS_KEYS.wsUser(userId));
+}
+
+export async function isUserConnected(redis: Redis, userId: string): Promise<boolean> {
+  const exists = await redis.exists(REDIS_KEYS.wsUser(userId));
+  return exists === 1;
+}

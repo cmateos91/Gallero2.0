@@ -39,7 +39,11 @@ export async function buildServer() {
     "http://localhost:5173",
   ];
   await app.register(cors, { origin: allowedOrigins, credentials: true });
-  await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: "1 minute",
+    ...(process.env.NODE_ENV !== "test" ? { redis: getRedis() } : {}),
+  });
   await app.register(compress);
   await app.register(cookie);
   await app.register(websocket);

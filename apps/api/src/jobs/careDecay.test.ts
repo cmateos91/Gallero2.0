@@ -1,16 +1,21 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import type { Redis } from "ioredis";
 import { getPrisma } from "../db/prisma.js";
+import { getRedis } from "../db/redis.js";
 import { runCareDecay } from "./careDecay.job.js";
 
 const prisma = getPrisma();
+let redis: Redis;
 let testUserId: string;
 let testRoosterId: string;
 
 beforeAll(async () => {
+  redis = getRedis();
+
   const user = await prisma.user.create({
     data: {
-      email:    `caredecay-test-${Date.now()}@test.com`,
-      username: `cdtest${Date.now()}`.slice(0, 20),
+      email:    `caredecay-test-${String(Date.now())}@test.com`,
+      username: `cdtest${String(Date.now())}`.slice(0, 20),
     },
   });
   testUserId = user.id;
@@ -32,17 +37,24 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await redis.del("care:lastDecay");
   await prisma.rooster.deleteMany({ where: { userId: testUserId } });
   await prisma.user.delete({ where: { id: testUserId } });
 });
 
+async function allowDecay(): Promise<void> {
+  await redis.set("care:lastDecay", String(Date.now() - 8_000_000));
+}
+
 describe("runCareDecay", () => {
-  it("decrementa careCurrent de gallos adultos", async () => {
+  it("decrementa careCurrent de gallos adultos (cuando han pasado >2h)", async () => {
+    await allowDecay();
+
     const before = await prisma.rooster.findUniqueOrThrow({
       where: { id: testRoosterId }, select: { careCurrent: true },
     });
 
-    await runCareDecay(prisma);
+    await runCareDecay(prisma, redis);
 
     const after = await prisma.rooster.findUniqueOrThrow({
       where: { id: testRoosterId }, select: { careCurrent: true },
@@ -51,13 +63,30 @@ describe("runCareDecay", () => {
     expect(after.careCurrent).toBe(before.careCurrent - 1);
   });
 
+  it("NO decrementa si no han pasado 2h (guardia activa)", async () => {
+    // Just ran a decay, guard key is fresh → should skip
+    const before = await prisma.rooster.findUniqueOrThrow({
+      where: { id: testRoosterId }, select: { careCurrent: true },
+    });
+
+    const affected = await runCareDecay(prisma, redis);
+
+    const after = await prisma.rooster.findUniqueOrThrow({
+      where: { id: testRoosterId }, select: { careCurrent: true },
+    });
+
+    expect(affected).toBe(0);
+    expect(after.careCurrent).toBe(before.careCurrent);
+  });
+
   it("no decrementa por debajo de 0", async () => {
+    await allowDecay();
     await prisma.rooster.update({
       where: { id: testRoosterId },
       data: { careCurrent: 0 },
     });
 
-    await runCareDecay(prisma);
+    await runCareDecay(prisma, redis);
 
     const after = await prisma.rooster.findUniqueOrThrow({
       where: { id: testRoosterId }, select: { careCurrent: true },
@@ -81,7 +110,8 @@ describe("runCareDecay", () => {
       },
     });
 
-    await runCareDecay(prisma);
+    await allowDecay();
+    await runCareDecay(prisma, redis);
 
     const after = await prisma.rooster.findUniqueOrThrow({
       where: { id: egg.id }, select: { careCurrent: true },
