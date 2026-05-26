@@ -73,6 +73,8 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  @@index([mmr(sort: Desc)])
+
   roosters              Rooster[]
   feathers              FeatherCollectible[]
   sessions              Session[]
@@ -124,6 +126,9 @@ model Rooster {
   fightsAsChallenger Fight[]          @relation("ChallengerRooster")
   fightsAsDefender   Fight[]          @relation("DefenderRooster")
   equippedCosmetics  EquippedCosmetic[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, stage])
 }
 
 model Fight {
@@ -144,6 +149,9 @@ model Fight {
   challengerRooster Rooster @relation("ChallengerRooster", fields: [challengerRoosterId], references: [id])
   defenderRooster   Rooster @relation("DefenderRooster", fields: [defenderRoosterId], references: [id])
   rewardTransaction  RewardTransaction?
+
+  @@index([challengerUserId, createdAt(sort: Desc)])
+  @@index([defenderUserId, createdAt(sort: Desc)])
 }
 
 model Session {
@@ -157,6 +165,8 @@ model Session {
   createdAt        DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([expiresAt, revokedAt])
 }
 
 model Friendship {
@@ -169,6 +179,7 @@ model Friendship {
   friend User @relation("UserBFriendship", fields: [friendId], references: [id])
 
   @@unique([userId, friendId])
+  @@index([friendId])
 }
 
 model FriendRequest {
@@ -270,6 +281,7 @@ model DailyMissionProgress {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, date])
+  @@index([date])
 }
 
 model CosmeticItem {
@@ -283,6 +295,8 @@ model CosmeticItem {
 
   owners    UserCosmetic[]
   equipped  EquippedCosmetic[]
+
+  @@unique([slot, name])
 }
 
 model UserCosmetic {
