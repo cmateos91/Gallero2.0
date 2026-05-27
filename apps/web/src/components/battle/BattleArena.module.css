@@ -1,0 +1,46 @@
+.arena {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  position: relative;
+}
+
+.fighters {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  position: relative;
+}
+
+.log {
+  padding: var(--spacing-sm) var(--spacing-md);
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.logLine {
+  font-size: 13px;
+  color: var(--color-text-light);
+  padding: 2px 0;
+}
+
+.damageNum {
+  position: absolute;
+  top: 20%;
+  font-size: 28px;
+  font-weight: 900;
+  color: #e74c3c;
+  animation: floatUp 1.2s ease-out forwards;
+  z-index: 10;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.left { left: 25%; }
+.right { right: 25%; }
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}

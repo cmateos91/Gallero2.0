@@ -1,10 +1,21 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-
-interface AuthUserDto {
-  id: string;
-  email: string;
-  username: string;
-}
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
+import { setAccessToken as setClientToken, clearAccessToken as clearClientToken } from "../lib/api/client.js";
+import {
+  loginApi,
+  registerApi,
+  loginGoogleApi,
+  logoutApi,
+  fetchMe,
+} from "../lib/api/auth.js";
+import { AuthError } from "../lib/api/client.js";
+import type { AuthUserDto } from "../types/api.js";
 
 interface AuthContextValue {
   user: AuthUserDto | null;
@@ -23,34 +34,71 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUserDto | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((_emailOrUsername: string, _password: string) => {
-    // TODO: Fase 4 — Implementar llamadas reales a /auth/login
-    return Promise.reject(new Error("Auth not implemented yet"));
+  useEffect(() => {
+    fetchMe()
+      .then((u) => {
+        setUser(u);
+      })
+      .catch(() => {
+        setUser(null);
+        clearClientToken();
+      })
+      .finally(() => { setLoading(false); });
   }, []);
 
-  const register = useCallback((_email: string, _username: string, _password: string) => {
-    // TODO: Fase 4
-    return Promise.reject(new Error("Auth not implemented yet"));
+  const login = useCallback(async (emailOrUsername: string, password: string) => {
+    const res = await loginApi(emailOrUsername, password);
+    setClientToken(res.accessToken);
+    setAccessToken(res.accessToken);
+    setUser(res.user);
   }, []);
 
-  const loginGoogle = useCallback((_idToken: string) => {
-    // TODO: Fase 4
-    return Promise.reject(new Error("Auth not implemented yet"));
+  const register = useCallback(async (email: string, username: string, password: string) => {
+    const res = await registerApi(email, username, password);
+    setClientToken(res.accessToken);
+    setAccessToken(res.accessToken);
+    setUser(res.user);
   }, []);
 
-  const logout = useCallback(() => {
-    // TODO: Fase 4
+  const loginGoogle = useCallback(async (idToken: string) => {
+    const res = await loginGoogleApi(idToken);
+    setClientToken(res.accessToken);
+    setAccessToken(res.accessToken);
+    setUser(res.user);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi();
+    } catch {
+      /* ignore network errors on logout */
+    }
     setUser(null);
     setAccessToken(null);
-    return Promise.resolve();
+    clearClientToken();
   }, []);
 
-  const refreshAccessToken = useCallback((): Promise<string | null> => {
-    // TODO: Fase 4 — Usa httpOnly cookie automáticamente
-    return Promise.resolve(null);
-  }, []);
+  const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const res = await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        void logout();
+        return null;
+      }
+      const body = (await res.json()) as { accessToken: string };
+      setClientToken(body.accessToken);
+      setAccessToken(body.accessToken);
+      return body.accessToken;
+    } catch {
+      void logout();
+      return null;
+    }
+  }, [logout]);
 
   return (
     <AuthContext.Provider
@@ -76,3 +124,5 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+
+export { AuthError };

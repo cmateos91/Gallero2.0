@@ -1,0 +1,89 @@
+.sprite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  animation: bob 2s ease-in-out infinite;
+}
+
+.sleeping .body {
+  transform: scaleY(0.85);
+}
+
+.sleeping .eye {
+  background: #333;
+  border-radius: 0;
+  height: 2px;
+  width: 2px;
+  margin-top: 2px;
+}
+
+.crest {
+  width: 24px; height: 14px;
+  border-radius: 50% 50% 0 0;
+  margin-bottom: -3px;
+}
+
+.body {
+  width: 60%; height: 55%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.eyes {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.eye {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  position: relative;
+}
+
+.eye::after {
+  content: "";
+  position: absolute;
+  top: 1px; left: 1px;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #111;
+}
+
+.eyeClosed {
+  border-radius: 0;
+  width: 4px; height: 1px;
+  margin-top: 2px;
+  background: #111;
+}
+
+.eyeClosed::after { display: none; }
+
+.beak {
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #d4a017;
+  margin-top: 1px;
+}
+
+.legs {
+  display: flex;
+  gap: 8px;
+}
+
+.leg {
+  width: 2px; height: 10px;
+  background: #d4a017;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}

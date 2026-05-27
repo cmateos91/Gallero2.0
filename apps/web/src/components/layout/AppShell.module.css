@@ -1,0 +1,37 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.coins, .mmr {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+}

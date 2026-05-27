@@ -1,0 +1,13 @@
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+}
+
+.waiting {
+  text-align: center;
+  padding: var(--spacing-lg);
+  font-size: 15px;
+  color: var(--color-text-light);
+}

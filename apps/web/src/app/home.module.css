@@ -1,0 +1,84 @@
+.page {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.swipeContainer {
+  flex: 1;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  display: flex;
+}
+
+.screen {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  position: relative;
+}
+
+.ground {
+  position: relative;
+  width: 100%;
+  height: calc(100dvh - 220px);
+  overflow: hidden;
+}
+
+.rooster {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  transition: transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.rooster:active {
+  cursor: grabbing;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background: rgba(255,255,255,0.9);
+  border-top: 1px solid var(--color-border);
+}
+
+.actionBtn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+
+.actionBtn:active {
+  transform: scale(0.9);
+}
+
+.missions {
+  padding: var(--spacing-sm);
+  background: rgba(255,255,255,0.95);
+  border-top: 1px solid var(--color-border);
+  max-height: 180px;
+  overflow-y: auto;
+}

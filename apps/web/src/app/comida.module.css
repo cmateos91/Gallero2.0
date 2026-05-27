@@ -1,0 +1,12 @@
+.page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 20px;
+  text-align: center;
+}

@@ -1,17 +1,3 @@
-/**
- * Authenticated API client with auto-refresh.
- *
- * Usage:
- *   import { requestAuth } from "@/lib/api/client";
- *   const data = await requestAuth<User>("/auth/me");
- *
- * Flow:
- *   1. Adds Authorization: Bearer <accessToken from memory>
- *   2. On 401: calls /auth/refresh (httpOnly cookie sent automatically)
- *   3. On refresh success: retries original request
- *   4. On refresh failure: clears auth state, redirects to /login
- */
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -21,16 +7,81 @@ export class ApiError extends Error {
   }
 }
 
+export class AuthError extends Error {
+  constructor(message = "Session expired") {
+    super(message);
+  }
+}
+
+let _accessToken: string | null = null;
+
+export function setAccessToken(token: string | null): void {
+  _accessToken = token;
+}
+
+export function getAccessToken(): string | null {
+  return _accessToken;
+}
+
+export function clearAccessToken(): void {
+  _accessToken = null;
+}
+
+const REFRESH_URL = "/api/auth/refresh";
+
+async function tryRefresh(): Promise<string | null> {
+  try {
+    const res = await fetch(REFRESH_URL, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { accessToken: string };
+    setAccessToken(body.accessToken);
+    return body.accessToken;
+  } catch {
+    return null;
+  }
+}
+
 export async function requestAuth<T>(url: string, options?: RequestInit): Promise<T> {
-  // TODO: Fase 4 — Implementar con acceso al AuthContext
-  const res = await fetch(url, {
+  const token = getAccessToken();
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let res = await fetch(url, {
     ...options,
+    headers,
     credentials: "include",
   });
 
-  if (!res.ok) {
-    throw new ApiError(res.status, await res.json().catch(() => null));
+  if (res.status === 401 && token) {
+    const newToken = await tryRefresh();
+    if (newToken) {
+      headers.Authorization = `Bearer ${newToken}`;
+      res = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
+    } else {
+      clearAccessToken();
+      throw new AuthError();
+    }
   }
 
-  return res.json() as Promise<T>;
+  if (!res.ok) {
+    const body: unknown = await res.json().catch(() => null);
+    throw new ApiError(res.status, body);
+  }
+
+  return res.json() as T;
+}
+
+export function requestNoAuth<T>(url: string, options?: RequestInit): Promise<T> {
+  return requestAuth<T>(url, { ...options });
 }

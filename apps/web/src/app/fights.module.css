@@ -1,0 +1,48 @@
+.page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 20px;
+  text-align: center;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.opponentCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.selected {
+  border-color: var(--color-primary);
+}
+
+.oppName {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.resultCard {
+  text-align: center;
+  padding: var(--spacing-lg);
+  font-size: 18px;
+  font-weight: 600;
+}

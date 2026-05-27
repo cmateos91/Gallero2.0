@@ -1,0 +1,95 @@
+.page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 20px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.eggs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.eggCard {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.tierName {
+  font-family: var(--font-family-heading);
+  font-size: 17px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.probs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.probRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+}
+
+.qualityName {
+  width: 80px;
+  font-weight: 500;
+}
+
+.probBar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.probFill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.probNum {
+  width: 32px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.free {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: #f9f9f9;
+  border-radius: var(--radius-md);
+}
+
+.note {
+  font-size: 12px;
+  color: var(--color-text-light);
+}

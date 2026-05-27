@@ -1,0 +1,78 @@
+.page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.card {
+  padding: var(--spacing-md);
+}
+
+.username {
+  font-family: var(--font-family-heading);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.email {
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-top: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.toggle {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.options {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.option {
+  flex: 1;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+
+.active {
+  border-color: var(--color-primary);
+  background: #fff;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.version {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-light);
+}

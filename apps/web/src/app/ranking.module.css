@@ -1,0 +1,73 @@
+.page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.podium {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.podiumCard {
+  flex: 1;
+  max-width: 130px;
+  text-align: center;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.medal { font-size: 32px; line-height: 1; }
+.podiumName { font-weight: 600; font-size: 14px; }
+.podiumMmr { font-size: 13px; color: var(--color-text-light); }
+
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableHeader, .tableRow {
+  display: grid;
+  grid-template-columns: 32px 1fr 64px 64px 44px;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 10px var(--spacing-sm);
+  font-size: 14px;
+}
+
+.tableHeader {
+  color: var(--color-text-light);
+  font-weight: 600;
+  font-size: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rank { color: var(--color-text-light); font-weight: 600; }
+.name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mmr { color: var(--color-primary); font-weight: 600; }
+.tower { font-size: 12px; color: var(--color-text-light); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
